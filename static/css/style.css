@@ -30,6 +30,37 @@ h1, .brand {
     margin: 0 auto;
     padding: 0 1.5rem;
 }
+
+.container-navbar{
+    display: flex;
+    justify-content: center;
+    padding: 1.25rem 1.5rem;
+}
+
+.ul-navbar{
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    list-style: none;
+}
+
+.a-navbar{
+    color: var(--ink);
+    text-decoration: none;;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding-bottom: 0.25rem;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.li-navbar:hover{
+    background-color: #a8442a;
+    transition: .5s ease-in-out;
+    transition-delay: .3s;
+    border-radius: 8px;
+}
+
 .site-header {
     border-bottom: 1px solid var(--line);
 }
@@ -188,5 +219,63 @@ h1, .brand {
 
     .social-links {
         justify-content: flex-start;
+    }
+}
+
+.experience{
+    padding: 3rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.experience .container{
+    text-align: center;
+}
+
+.section-title{
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 2rem;
+    margin-bottom: 1.5;
+}
+
+.table {
+    overflow-x: auto;
+}
+
+.table-experience {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.table-experience td{
+    padding: 1rem;
+    border: 1px solid var(--line);
+}
+
+.experience-logo{
+    width: auto;
+    height: 50px;
+    object-fit: contain;
+}
+
+.name-row td{
+    font-weight: 700;
+    font-family: "Space Grotesk", sans-serif;
+}
+
+.role-row td{
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+    .experience-logo{
+        width: 40px;
+        height: 40px;
+    }
+
+    .table-experience td{
+        padding: 0.6rem;
+        font-size: 0.9rem;
     }
 }
