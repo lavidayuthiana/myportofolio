@@ -338,3 +338,66 @@ h1, .brand {
         text-align: left;
     }
 }
+
+.volunteer{
+    padding: 3rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.volunteer .section-title{
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.volunteer-list{
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.volunteer-item{
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background-color: white;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    transition: border-color 0.2s ease;
+}
+
+.volunteer-item:nth-child(even){
+    flex-direction: row-reverse;
+}
+
+.volunteer-item:hover{
+    border-color: var(--accent);
+}
+
+.volunteer-logo{
+    width: auto;
+    height: 50px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.volunteer-details h3{
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.volunteer-desc{
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+    .volunteer-item{
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+}
