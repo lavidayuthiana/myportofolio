@@ -5,13 +5,13 @@
 }
 
 :root {
-    --ink: #344C3D;
-    --paper: #faf6f0;
-    --accent: #f2d1d4;
-    --accent-dark: #D8959B;
-    --line: #e3d9c9;
-    --text-muted: #829672;
-    --radius: 4px;
+    --ink: #3E2B22;
+    --paper: #FBF4E9;
+    --accent: #F0C9A0;
+    --accent-dark: #C1603C;
+    --line: #E8D8BF;
+    --text-muted: #8A7B54;
+    --radius: 6px;
 }
 
 body {
@@ -63,6 +63,10 @@ h1, .brand {
 
 .site-header {
     border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background-color: var(--paper);
+    z-index: 10;
 }
 
 .site-header .container {
@@ -454,4 +458,130 @@ h1, .brand {
     margin-top: 1rem;
     font-size: 0.85rem;
     font-weight: 600;
+}
+
+.experience-section,
+.education-section {
+    padding: 4rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.experience-grid,
+.education-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.experience-card,
+.education-card {
+    padding: 1.25rem;
+    background-color: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.experience-category,
+.education-category {
+    color: var(--accent-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.experience-card h2,
+.education-card h2 {
+    margin: 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.experience-description,
+.education-description,
+.empty-state {
+    color: var(--text-muted);
+}
+
+.experience-status,
+.education-status {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.experience-section,
+.education-section,
+.volunteer-section {
+    padding: 4rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.experience-grid,
+.education-grid,
+.volunteer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.experience-card,
+.education-card,
+.volunteer-card {
+    padding: 1.25rem;
+    background-color: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.experience-category,
+.education-category,
+.volunteer-category {
+    color: var(--accent-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.experience-card h2,
+.education-card h2,
+.volunteer-card h2 {
+    margin: 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.experience-description,
+.education-description,
+.volunteer-description,
+.empty-state {
+    color: var(--text-muted);
+}
+
+.experience-status,
+.education-status,
+.volunteer-status {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.volunteer-logo {
+    width: auto;
+    max-height: 50px;
+    object-fit: contain;
+    margin-bottom: 0.75rem;
+}
+
+.experience-section .section-kicker,
+.experience-section h1,
+.education-section .section-kicker,
+.education-section h1,
+.volunteer-section .section-kicker,
+.volunteer-section h1 {
+    text-align: center;
+}
+
+.experience-card .experience-logo,
+.education-logo,
+.volunteer-logo {
+    display: block;
+    margin: 0.5rem 0;
 }
