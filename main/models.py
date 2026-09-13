@@ -24,3 +24,38 @@ class Experience(models.Model):
     @property
     def is_ongoing(self):
         return self.ended_at is None
+
+class Education(models.Model):
+    SCORE_LABEL_CHOICES = [
+        ('nilai', 'Nilai'),
+        ('ipk', 'IPK')
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    institution_name = models.CharField(max_length=255)
+    degree = models.CharField(
+        max_length=255,
+        help_text="ex: SMA, S1 SI"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="organisasi/prestasi"
+    )
+    logo = models.URLField(blank=True, null=True)
+    score_label = models.CharField(
+        max_length=10, choices=SCORE_LABEL_CHOICES, default='ipk'
+    )
+    score_value = models.DecimalField(max_digits=4, decimal_places=2)
+    started_at = models.DateField(blank=True, null=True)
+    ended_at = models.DateField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-started_at']
+
+    def __str__(self):
+        return self.institution_name
+
+
+    @property
+    def is_ongoing(self):
+        return self.ended_at is None
