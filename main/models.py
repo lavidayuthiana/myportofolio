@@ -9,6 +9,7 @@ class Experience(models.Model):
         ('part-time', 'Part-Time'),
         ('full-time', 'Full-Time'),
         ('freelance', 'Freelance'),
+        ('comittee', 'Comittee'),
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -16,7 +17,7 @@ class Experience(models.Model):
     description = models.TextField()
     category = models.CharField(max_length=20, choices=EXPERIENCE_CHOICES, default='full-time')
     thumbnail = models.URLField(blank=True, null=True)
-    started_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(blank=True, null=True)
     ended_at = models.DateTimeField(blank=True, null=True)
     def __str__(self):
         return self.title
@@ -55,6 +56,32 @@ class Education(models.Model):
     def __str__(self):
         return self.institution_name
 
+
+    @property
+    def is_ongoing(self):
+        return self.ended_at is None
+
+class Volunteer(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization_name = models.CharField(max_length=255)
+    degree = models.CharField(
+        max_length=255,
+        help_text="volunteer"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="ngapain"
+    )
+    logo = models.URLField(blank=True, null=True)
+    started_at = models.DateField(blank=True, null=True)
+    ended_at = models.DateField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-started_at']
+
+    def __str__(self):
+        return self.institution_name
 
     @property
     def is_ongoing(self):
