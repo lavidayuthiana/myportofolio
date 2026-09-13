@@ -39,7 +39,7 @@ class MainTest(TestCase):
         self.assertContains(response, self.experience.title)
         self.assertContains(response, self.experience.description)
         self.assertContains(response, "Part-Time")
-        self.assertContains(response, "Sedang berlangsung")
+        self.assertContains(response, "On-Going")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
     def test_empty_experience_page(self):
@@ -54,8 +54,8 @@ class MainTest(TestCase):
         response = self.client.get(reverse("main:show_experience"))
 
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Selesai")
-        self.assertNotContains(response, "Sedang berlangsung")
+        self.assertContains(response, "Completed")
+        self.assertNotContains(response, "On-Going")
 
 class EducationTest(TestCase):
     def setUp(self):
@@ -88,7 +88,7 @@ class VolunteerTest(TestCase):
     def setUp(self):
         self.volunteer = Volunteer.objects.create(
             organization_name="Open House Fasilkom UI",
-            role="Mentor",
+            degree="Mentor",
             description="Membimbing dan mengajar mentee tentang Fasilkom UI.",
         )
 
@@ -102,7 +102,7 @@ class VolunteerTest(TestCase):
         response = self.client.get(reverse("main:show_volunteer"))
 
         self.assertContains(response, self.volunteer.organization_name)
-        self.assertContains(response, self.volunteer.role)
+        self.assertContains(response, self.volunteer.degree)
 
     def test_empty_volunteer_page(self):
         Volunteer.objects.all().delete()

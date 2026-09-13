@@ -40,12 +40,12 @@
                 <div class="volunteer-grid">
                     {% for volunteer in volunteer_list %}
                         <article class="volunteer-card">
+                            <span class="volunteer-category">
+                                {{ volunteer.degree }}
+                            </span>
                             {% if volunteer.logo %}
                                 <img src="{{ volunteer.logo }}" alt="Logo {{ volunteer.organization_name }}" class="volunteer-logo">
                             {% endif %}
-                            <span class="volunteer-category">
-                                {{ volunteer.role }}
-                            </span>
                             <h2>{{ volunteer.organization_name }}</h2>
                             <p class="volunteer-description">
                                 {{ volunteer.description|linebreaksbr }}

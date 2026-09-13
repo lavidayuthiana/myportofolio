@@ -81,7 +81,7 @@ class Volunteer(models.Model):
         ordering = ['-started_at']
 
     def __str__(self):
-        return self.institution_name
+        return self.organization_name
 
     @property
     def is_ongoing(self):

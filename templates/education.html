@@ -40,12 +40,12 @@
                 <div class="education-grid">
                     {% for education in education_list %}
                         <article class="education-card">
-                            {% if education.logo %}
-                                <img src="{{ education.logo }}" alt="Logo {{ education.institution_name }}" class="education-logo">
-                            {% endif %}
                             <span class="education-category">
                                 {{ education.degree }}
                             </span>
+                            {% if education.logo %}
+                                <img src="{{ education.logo }}" alt="Logo {{ education.institution_name }}" class="education-logo">
+                            {% endif %}
                             <h2>{{ education.institution_name }}</h2>
                             <p class="education-description">
                                 {{ education.description|linebreaksbr }}
