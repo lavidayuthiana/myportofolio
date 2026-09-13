@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from main.models import Experience, Education
+from main.models import Experience, Education, Volunteer
 
 
 class MainTest(TestCase):
@@ -83,3 +83,29 @@ class EducationTest(TestCase):
         response = self.client.get(reverse("main:show_education"))
 
         self.assertContains(response, "Belum ada education yang ditambahkan.")
+
+class VolunteerTest(TestCase):
+    def setUp(self):
+        self.volunteer = Volunteer.objects.create(
+            organization_name="Open House Fasilkom UI",
+            role="Mentor",
+            description="Membimbing dan mengajar mentee tentang Fasilkom UI.",
+        )
+
+    def test_volunteer_url_is_accessible_and_uses_correct_template(self):
+        response = self.client.get(reverse("main:show_volunteer"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "volunteer.html")
+
+    def test_volunteer_data_appears_on_page(self):
+        response = self.client.get(reverse("main:show_volunteer"))
+
+        self.assertContains(response, self.volunteer.organization_name)
+        self.assertContains(response, self.volunteer.role)
+
+    def test_empty_volunteer_page(self):
+        Volunteer.objects.all().delete()
+        response = self.client.get(reverse("main:show_volunteer"))
+
+        self.assertContains(response, "Belum ada kegiatan volunteer yang ditambahkan.")
