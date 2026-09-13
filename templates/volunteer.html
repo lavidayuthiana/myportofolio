@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Education - {{ name }}</title>
+    <title>Volunteer - {{ name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -32,37 +32,34 @@
     </header>
 
     <main>
-        <section class="education-section" id="education">
+        <section class="volunteer-section" id="volunteer">
             <div class="container">
-                <p class="section-kicker">Academic Journey</p>
-                <h1>Education</h1>
+                <p class="section-kicker">Volunteer Journey</p>
+                <h1>Volunteer</h1>
 
-                <div class="education-grid">
-                    {% for education in education_list %}
-                        <article class="education-card">
-                            {% if education.logo %}
-                                <img src="{{ education.logo }}" alt="Logo {{ education.institution_name }}" class="education-logo">
+                <div class="volunteer-grid">
+                    {% for volunteer in volunteer_list %}
+                        <article class="volunteer-card">
+                            {% if volunteer.logo %}
+                                <img src="{{ volunteer.logo }}" alt="Logo {{ volunteer.organization_name }}" class="volunteer-logo">
                             {% endif %}
-                            <span class="education-category">
-                                {{ education.degree }}
+                            <span class="volunteer-category">
+                                {{ volunteer.role }}
                             </span>
-                            <h2>{{ education.institution_name }}</h2>
-                            <p class="education-description">
-                                {{ education.description|linebreaksbr }}
-                            </p>
-                            <p class="education-score">
-                                {{ education.get_score_label_display }}: {{ education.score_value }}
+                            <h2>{{ volunteer.organization_name }}</h2>
+                            <p class="volunteer-description">
+                                {{ volunteer.description|linebreaksbr }}
                             </p>
 
-                            {% if education.is_ongoing %}
-                                <p class="education-status">On-Going</p>
+                            {% if volunteer.is_ongoing %}
+                                <p class="volunteer-status">On-Going</p>
                             {% else %}
-                                <p class="education-status">Completed</p>
+                                <p class="volunteer-status">Completed</p>
                             {% endif %}
                         </article>
                     {% empty %}
                         <p class="empty-state">
-                            Belum ada education yang ditambahkan.
+                            Belum ada kegiatan volunteer yang ditambahkan.
                         </p>
                     {% endfor %}
                 </div>
