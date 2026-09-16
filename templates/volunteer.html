@@ -1,41 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "base.html" %}
+{% block meta %}
     <title>Volunteer - {{ name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <div class="container-navbar">
-                <ul class="ul-navbar">
-                    <li class="li-navbar">
-                        <a href="{% url 'main:show_main' %}" class="a-navbar">Home</a>
-                    </li>
-                    <li class="li-navbar">
-                        <a href="{% url 'main:show_experience' %}" class="a-navbar">Experience</a>
-                    </li>
-                    <li class="li-navbar">
-                        <a href="{% url 'main:show_education' %}" class="a-navbar">Education</a>
-                    </li>
-                    <li class="li-navbar">
-                        <a href="{% url 'main:show_volunteer' %}" class="a-navbar">Volunteer</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </header>
-
+{% endblock meta %}
+{% block content %}
     <main>
         <section class="volunteer-section" id="volunteer">
             <div class="container">
                 <p class="section-kicker">Volunteer Journey</p>
-                <h1>Volunteer</h1>
+                <div class="section-header">
+                    <h1>Volunteer</h1>
+                    <a href="{% url 'main:create_volunteer' %}" class="button section-add-button">
+                        <span aria-hidden="true">+</span>
+                        Tambah Volunteer
+                    </a>
+                </div>
+                <form method="get"
+                      action="{% url 'main:show_volunteer' %}"
+                      class="section-search">
+                    <input type="search"
+                           name="organization_name"
+                           value="{{ title_query }}"
+                           placeholder="Cari berdasarkan nama organisasi"
+                           class="section-search__input"
+                           aria-label="Cari berdasarkan nama organisasi">
+                    <button type="submit" class="button">Cari</button>
+                </form>
 
                 <div class="volunteer-grid">
                     {% for volunteer in volunteer_list %}
@@ -56,21 +45,20 @@
                             {% else %}
                                 <p class="volunteer-status">Completed</p>
                             {% endif %}
+
+                            {% include "components/volunteer_delete_modal.html" with volunteer=volunteer %}
                         </article>
                     {% empty %}
-                        <p class="empty-state">
-                            Belum ada kegiatan volunteer yang ditambahkan.
-                        </p>
+                        {% if title_query %}
+                            <p class="empty-state">Tidak ada organisasi dengan nama tersebut.</p>
+                        {% else %}
+                            <p class="empty-state">
+                                Belum ada kegiatan volunteer yang ditambahkan.
+                            </p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
         </section>
     </main>
-
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
-        </div>
-    </footer>
-</body>
-</html>
+{% endblock content %}
