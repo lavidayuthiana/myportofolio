@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block meta %}
-    <title>Add Volunteer - {{ name }}</title>
+       <title>{% if is_edit %}Edit Volunteer{% else %}Add Volunteer{% endif %} - {{ name }}</title>
 {% endblock meta %}
 {% block content %}
     <main>
         <section class="volunteer-section">
             <div class="container">
-                <h1>Add New Volunteer</h1>
+                   <h1>{% if is_edit %}Edit Volunteer{% else %}Add New Volunteer{% endif %}</h1>
                 <form method="post"
-                      action="{% url 'main:create_volunteer' %}"
                       class="data-form">
                     {% csrf_token %}
                     {% for field in form %}
@@ -20,7 +19,7 @@
                             {% endfor %}
                         </div>
                     {% endfor %}
-                    <button type="submit" class="button">Tambah Kegiatan Volunteer</button>
+                    <button type="submit" class="button">   {% if is_edit %}Simpan Perubahan{% else %}Tambah Kegiatan Volunteer{% endif %}</button>
                     <a href="{% url 'main:show_volunteer' %}" class="button button-secondary">Batal</a>
                 </form>
             </div>
