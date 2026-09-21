@@ -1,4 +1,7 @@
 <p class="item-actions">
+    <a href="{% url 'main:edit_volunteer' volunteer.id %}"
+        class="button button-secondary"
+        aria-label="Edit {{ volunteer.organization_name }}">Edit</a>
     <button type="button"
             class="button button-danger"
             popovertarget="delete-volunteer-{{ volunteer.id }}"
