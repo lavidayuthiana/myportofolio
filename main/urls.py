@@ -12,6 +12,7 @@ from main.views import (
     delete_education,
     delete_volunteer,
     edit_education,
+    edit_volunteer,
 )
 
 app_name = "main"
@@ -30,4 +31,5 @@ urlpatterns = [
     path("volunteer/add/", create_volunteer, name="create_volunteer"),
     path("volunteer/api/", get_volunteer_json, name="get_volunteer_json"),
     path("volunteer/<uuid:volunteer_id>/delete/", delete_volunteer, name="delete_volunteer"),
+       path("volunteer/<uuid:volunteer_id>/edit/", edit_volunteer, name="edit_volunteer"),
 ]
