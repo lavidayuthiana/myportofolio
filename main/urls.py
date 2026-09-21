@@ -13,6 +13,10 @@ from main.views import (
     delete_volunteer,
     edit_education,
     edit_volunteer,
+    create_experience,
+    get_experience_json,
+    edit_experience,
+    delete_experience,
 )
 
 app_name = "main"
@@ -20,6 +24,10 @@ app_name = "main"
 urlpatterns = [
     path("", show_main, name="show_main"),
     path("experience/", show_experience, name="show_experience"),
+    path("experience/add/", create_experience, name="create_experience"),
+    path("experience/api/", get_experience_json, name="get_experience_json"),
+    path("experience/<uuid:experience_id>/edit/", edit_experience, name="edit_experience"),
+    path("experience/<uuid:experience_id>/delete/", delete_experience, name="delete_experience"),
 
     path("education/", show_education, name="show_education"),
     path("education/add/", create_education, name="create_education"),
@@ -31,5 +39,5 @@ urlpatterns = [
     path("volunteer/add/", create_volunteer, name="create_volunteer"),
     path("volunteer/api/", get_volunteer_json, name="get_volunteer_json"),
     path("volunteer/<uuid:volunteer_id>/delete/", delete_volunteer, name="delete_volunteer"),
-       path("volunteer/<uuid:volunteer_id>/edit/", edit_volunteer, name="edit_volunteer"),
+    path("volunteer/<uuid:volunteer_id>/edit/", edit_volunteer, name="edit_volunteer"),
 ]
