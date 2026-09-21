@@ -6,9 +6,10 @@ from django.forms import (
     Select,
     DateInput,
     NumberInput,
+    DateTimeInput,
 )
 
-from main.models import Education, Volunteer
+from main.models import Education, Volunteer, Experience
 
 
 class EducationForm(ModelForm):
@@ -95,4 +96,27 @@ class VolunteerForm(ModelForm):
             ),
             "started_at": DateInput(attrs={"type": "date"}),
             "ended_at": DateInput(attrs={"type": "date"}),
+        }
+
+class ExperienceForm(ModelForm):
+    class Meta:
+        model = Experience
+        fields = ["title", "description", "category", "thumbnail", "started_at", "ended_at"]
+
+        labels = {
+            "title": "Judul Pengalaman",
+            "description": "Deskripsi",
+            "category": "Kategori",
+            "thumbnail": "URL Logo/Thumbnail",
+            "started_at": "Mulai",
+            "ended_at": "Selesai",
+        }
+
+        widgets = {
+            "title": TextInput(attrs={"placeholder": "Asisten Dosen PBP", "maxlength": 255}),
+            "description": Textarea(attrs={"placeholder": "Ceritakan pengalamanmu", "rows": 3}),
+            "category": Select(),
+            "thumbnail": URLInput(attrs={"placeholder": "https://..."}),
+            "started_at": DateTimeInput(format="%Y-%m-%dT%H:%M", attrs={"type": "datetime-local"}),
+            "ended_at": DateTimeInput(format="%Y-%m-%dT%H:%M", attrs={"type": "datetime-local"}),
         }
