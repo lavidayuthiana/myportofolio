@@ -117,6 +117,22 @@ def create_volunteer(request):
     }
     return render(request, "volunteer_form.html", context)
 
+def edit_volunteer(request, volunteer_id):
+    volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+    form = VolunteerForm(request.POST or None, instance=volunteer)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Kegiatan volunteer berhasil diperbarui!")
+        return redirect("main:show_volunteer")
+
+    context = {
+        "name": "Lavida Yuthiana Faizah",
+        "form": form,
+        "is_edit": True,
+    }
+    return render(request, "volunteer_form.html", context)
+
 
 def get_volunteer_json(request):
     query = request.GET.get("organization_name", "").strip()
