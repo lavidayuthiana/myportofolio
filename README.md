@@ -24,3 +24,18 @@ Link Google Gemini: https://share.gemini.google/jOTQ6nPlBraj
 # AI DISCLOSURE
 Saya menggunakan Google Gemini untuk bantu mengerti syntax-syntax, debugging error dan validasi pengerjaan saya.
 Link Google Gemini: https://share.gemini.google/LeLWnFAB3297
+
+### Tugas 3
+1. Saya menggunakan ModelForm agar konfigurasi form, seperti tipe data dan aturan validasi, bisa diturunkan langsung dari model secara otomatis. Hal ini menghemat banyak waktu karena kita tidak perlu menulis ulang input HTML atau membuat validasi manual di view setiap kali ada perubahan struktur data. Selain itu, fitur bawaannya sangat praktis: form.is_valid() menangani validasi, field.errors menyediakan pesan kesalahan, dan form.save() langsung berinteraksi dengan database (bahkan bisa dipakai untuk edit data dengan parameter instance=).
+
+Untuk keamanannya, tag {% csrf_token %} mutlak diperlukan pada method POST guna mencegah serangan CSRF yang bisa dimanfaatkan pihak luar untuk mengirim request berbahaya atas nama pengguna yang sedang login. Django mengamankan proses ini dengan menyematkan token unik berbasis sesi yang wajib dicocokkan saat data dikirim; jika gagal, request otomatis ditolak dengan error 403.
+
+2. JSON lebih populer daripada XML karena formatnya lebih ringkas, ringan, dan mudah dibaca. Berbeda dengan XML yang memerlukan tag pembuka dan penutup pada setiap elemen sehingga ukurannya lebih besar, JSON menggunakan struktur key-value, objek, dan array yang jauh lebih sederhana. Selain itu, JSON sangat mudah diintegrasikan karena strukturnya mirip dengan objek JavaScript (bisa langsung dibaca lewat JSON.parse()) serta selaras dengan tipe data dictionary dan list di berbagai bahasa pemrograman. Hal inilah yang membuat JSON menjadi standar di banyak API modern, sehingga lebih mudah dikonsumsi oleh aplikasi frontend maupun mobile.
+
+3. Saat pengguna mengakses /education/api/, Django mencocokkan request melalui urls.py ke view get_education_json yang menyaring data Education berdasarkan parameter pencarian. Queryset tersebut diubah menjadi teks JSON menggunakan serializers.serialize() lalu dikembalikan melalui HttpResponse berformat application/json. Sementara itu, halaman /education/ memanggil data tersebut, melakukan deserialisasi, dan meneruskannya ke templat education.html.
+
+Proses serialization ini wajib dilakukan karena objek Python di memori server harus diubah menjadi format teks standar yang dapat dikirim lewat protokol HTTP ke klien (seperti UUID dan Decimal yang dikonversi menjadi string).
+
+# AI DISCLOSURE
+Saya menggunakan Google Gemini untuk bantu mengerti syntax-syntax, debugging error dan validasi pengerjaan saya.
+Link Google Gemini: https://share.gemini.google/APVJqKyUOZvw
