@@ -11,6 +11,7 @@ from main.views import (
     get_volunteer_json,
     delete_education,
     delete_volunteer,
+    edit_education,
 )
 
 app_name = "main"
@@ -23,6 +24,7 @@ urlpatterns = [
     path("education/add/", create_education, name="create_education"),
     path("education/api/", get_education_json, name="get_education_json"),
     path("education/<uuid:education_id>/delete/", delete_education, name="delete_education"),
+    path("education/<uuid:education_id>/edit/", edit_education, name="edit_education"),
 
     path("volunteer/", show_volunteer, name="show_volunteer"),
     path("volunteer/add/", create_volunteer, name="create_volunteer"),
