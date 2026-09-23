@@ -818,3 +818,8 @@ h1, .brand {
         text-align: center;
     }
 }
+
+.nav-user {
+    font-weight: 700;
+    color: var(--accent-dark);
+}

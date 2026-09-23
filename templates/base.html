@@ -27,6 +27,14 @@
                     <li class="li-navbar">
                         <a href="{% url 'main:show_volunteer' %}" class="a-navbar">Volunteer</a>
                     </li>
+
+                    {% if user.is_authenticated %}
+                        <li class="li-navbar"><span class="nav-user">{{ user.username }}</span></li>
+                        <li class="li-navbar"><a href="{% url 'main:logout' %}" class="a-navbar">Logout</a></li>
+                    {% else %}
+                        <li class="li-navbar"><a href="{% url 'main:login' %}" class="a-navbar">Login</a></li>
+                        <li class="li-navbar"><a href="{% url 'main:register' %}" class="a-navbar">Register</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
