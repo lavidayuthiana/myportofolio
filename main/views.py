@@ -12,6 +12,7 @@ from main.models import Education, Experience, Volunteer
 
 
 def show_main(request):
+    last_login = request.COOKIES.get('last_login', 'Belum ada sesi login / Cookie tidak ditemukan')
     context = {
         "name": "Lavida Yuthiana Faizah",
         "npm": "2506605941",
@@ -20,6 +21,7 @@ def show_main(request):
             "Hello! I'm a CS student who is passionate about technology. "
             "Interested in exploring new technologies and developing innovative solutions."
         ),
+        "last_login": last_login,
     }
     return render(request, "index.html", context)
 
