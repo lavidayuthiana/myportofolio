@@ -9,6 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from main.permissions import editor_required, superuser_required
+from django.views.decorators.http import require_POST
 
 from main.forms import EducationForm, VolunteerForm, ExperienceForm
 from main.models import Education, Experience, Volunteer
@@ -99,7 +100,7 @@ def get_experience_json(request):
     if query:
         experience = experience.filter(title__icontains=query)
 
-    experience_json = serializers.serialize("json", experience, use_natural_foreign_keys=True)
+    experience_json = serializers.serialize("json", experience, fields=["title", "description", "category", "thumbnail", "started_at", "ended_at"])
     return HttpResponse(experience_json, content_type="application/json")
 
 def show_experience(request):
@@ -116,6 +117,7 @@ def show_experience(request):
         "name": "Lavida Yuthiana Faizah",
         "experience_list": experience,
         "title_query": title_query,
+        "is_editor": is_editor(request.user),
     }
     return render(request, "experience.html", context)
 
@@ -165,7 +167,7 @@ def get_education_json(request):
     if query:
         education = education.filter(institution_name__icontains=query)
 
-    education_json = serializers.serialize("json", education)
+    education_json = serializers.serialize("json", education, fields=["institution_name", "degree", "description", "logo", "score_label", "score_value", "started_at", "ended_at"])
     return HttpResponse(education_json, content_type="application/json")
 
 
@@ -183,6 +185,7 @@ def show_education(request):
         "name": "Lavida Yuthiana Faizah",
         "education_list": education,
         "title_query": title_query,
+        "is_editor": is_editor(request.user),
     }
     return render(request, "education.html", context)
 
@@ -220,7 +223,7 @@ def get_volunteer_json(request):
     if query:
         volunteer = volunteer.filter(organization_name__icontains=query)
 
-    volunteer_json = serializers.serialize("json", volunteer)
+    volunteer_json = serializers.serialize("json", volunteer, fields=["organization_name", "degree", "description", "logo", "started_at", "ended_at"])
     return HttpResponse(volunteer_json, content_type="application/json")
 
 
@@ -238,6 +241,7 @@ def show_volunteer(request):
         "name": "Lavida Yuthiana Faizah",
         "volunteer_list": volunteer,
         "title_query": title_query,
+        "is_editor": is_editor(request.user),
     }
     return render(request, "volunteer.html", context)
 
@@ -247,3 +251,13 @@ def delete_volunteer(request, volunteer_id):
     if not request.user.is_superuser:
         raise PermissionDenied
     volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+
+@login_required(login_url="main:login")
+@require_POST
+def toggle_star_volunteer(request, volunteer_id):
+    volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+    if volunteer.starred_by.filter(pk=request.user.pk).exists():
+        volunteer.starred_by.remove(request.user)
+    else:
+        volunteer.starred_by.add(request.user)
+    return redirect("main:show_volunteer")

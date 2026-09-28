@@ -21,6 +21,7 @@ from main.views import (
     login_user,
     logout_user,
     toggle_star,
+    toggle_star_volunteer,
 )
 
 app_name = "main"
@@ -49,4 +50,5 @@ urlpatterns = [
     path("volunteer/api/", get_volunteer_json, name="get_volunteer_json"),
     path("volunteer/<uuid:volunteer_id>/delete/", delete_volunteer, name="delete_volunteer"),
     path("volunteer/<uuid:volunteer_id>/edit/", edit_volunteer, name="edit_volunteer"),
+    path("volunteer/<uuid:volunteer_id>/star/", toggle_star_volunteer, name="toggle_star_volunteer"),
 ]
