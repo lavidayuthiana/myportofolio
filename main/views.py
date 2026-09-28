@@ -195,6 +195,16 @@ def delete_education(request, education_id):
         raise PermissionDenied
     education = get_object_or_404(Education, pk=education_id)
 
+@login_required(login_url="main:login")
+@require_POST
+def toggle_star_education(request, education_id):
+    education = get_object_or_404(Education, pk=education_id)
+    if education.starred_by.filter(pk=request.user.pk).exists():
+        education.starred_by.remove(request.user)
+    else:
+        education.starred_by.add(request.user)
+    return redirect("main:show_education")
+
 
 # ----------------------------- Volunteer -----------------------------
 

@@ -9,10 +9,12 @@
                 <p class="section-kicker">Volunteer Journey</p>
                 <div class="section-header">
                     <h1>Volunteer</h1>
+                    {% if user.is_superuser %}
                     <a href="{% url 'main:create_volunteer' %}" class="button section-add-button">
                         <span aria-hidden="true">+</span>
                         Tambah Volunteer
                     </a>
+                    {% endif %}
                 </div>
                 <form method="get"
                       action="{% url 'main:show_volunteer' %}"
@@ -45,7 +47,7 @@
                             {% else %}
                                 <p class="volunteer-status">Completed</p>
                             {% endif %}
-
+                            {% include "components/volunteer_star.html" with volunteer=volunteer %}
                             {% include "components/volunteer_delete_modal.html" with volunteer=volunteer %}
                         </article>
                     {% empty %}

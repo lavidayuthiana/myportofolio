@@ -1,7 +1,9 @@
+{% if user.is_superuser or is_editor %}
 <p class="item-actions">
     <a href="{% url 'main:edit_education' education.id %}"
         class="button button-secondary"
         aria-label="Edit {{ education.institution_name }}">Edit</a>
+    {% if user.is_superuser %}
     <button type="button"
             class="button button-danger"
             popovertarget="delete-education-{{ education.id }}"
@@ -9,7 +11,11 @@
             title="Hapus riwayat pendidikan">
         Hapus
     </button>
+    {% endif %}
 </p>
+{% endif %}
+
+{% if user.is_superuser %}
 <div id="delete-education-{{ education.id }}"
      class="delete-modal"
      popover="auto"
@@ -44,3 +50,4 @@
         </div>
     </div>
 </div>
+{% endif %}
