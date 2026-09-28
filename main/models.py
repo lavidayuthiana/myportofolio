@@ -83,6 +83,10 @@ class Volunteer(models.Model):
     started_at = models.DateField(blank=True, null=True)
     ended_at = models.DateField(blank=True, null=True)
 
+    starred_by = models.ManyToManyField(
+        User, related_name="starred_volunteers", blank=True
+    )
+
     class Meta:
         ordering = ['-started_at']
 
