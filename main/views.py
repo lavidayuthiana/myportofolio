@@ -8,8 +8,6 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from main.permissions import editor_required, superuser_required
-from django.views.decorators.http import require_POST
 
 from main.forms import EducationForm, VolunteerForm, ExperienceForm
 from main.models import Education, Experience, Volunteer
@@ -81,6 +79,11 @@ def create_experience(request):
         raise PermissionDenied
     form = ExperienceForm(request.POST or None)
 
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Pengalaman berhasil ditambahkan!")
+        return redirect("main:show_experience")
+
     context = {
         "name": "Lavida Yuthiana Faizah",
         "form": form,
@@ -92,6 +95,19 @@ def edit_experience(request, experience_id):
     if not (request.user.is_superuser or is_editor(request.user)):
         raise PermissionDenied
     experience = get_object_or_404(Experience, pk=experience_id)
+    form = ExperienceForm(request.POST or None, instance=experience)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Pengalaman berhasil diperbarui!")
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Lavida Yuthiana Faizah",
+        "form": form,
+        "is_edit": True,
+    }
+    return render(request, "experience_form.html", context)
 
 def get_experience_json(request):
     query = request.GET.get("title", "").strip()
@@ -127,6 +143,12 @@ def delete_experience(request, experience_id):
         raise PermissionDenied
     experience = get_object_or_404(Experience, pk=experience_id)
 
+    if request.method == "POST":
+        experience.delete()
+        messages.success(request, "Pengalaman berhasil dihapus!")
+
+    return redirect("main:show_experience")
+
 @login_required(login_url="/login/")
 def toggle_star(request, experience_id):
     experience = get_object_or_404(Experience, pk=experience_id)
@@ -147,6 +169,11 @@ def create_education(request):
         raise PermissionDenied
     form = EducationForm(request.POST or None)
 
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Riwayat pendidikan berhasil ditambahkan!")
+        return redirect("main:show_education")
+
     context = {
         "name": "Lavida Yuthiana Faizah",
         "form": form,
@@ -158,6 +185,19 @@ def edit_education(request, education_id):
     if not (request.user.is_superuser or is_editor(request.user)):
         raise PermissionDenied
     education = get_object_or_404(Education, pk=education_id)
+    form = EducationForm(request.POST or None, instance=education)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Riwayat pendidikan berhasil diperbarui!")
+        return redirect("main:show_education")
+
+    context = {
+        "name": "Lavida Yuthiana Faizah",
+        "form": form,
+        "is_edit": True,
+    }
+    return render(request, "education_form.html", context)
 
 
 def get_education_json(request):
@@ -195,6 +235,12 @@ def delete_education(request, education_id):
         raise PermissionDenied
     education = get_object_or_404(Education, pk=education_id)
 
+    if request.method == "POST":
+        education.delete()
+        messages.success(request, "Riwayat pendidikan berhasil dihapus!")
+
+    return redirect("main:show_education")
+
 @login_required(login_url="main:login")
 @require_POST
 def toggle_star_education(request, education_id):
@@ -213,6 +259,12 @@ def create_volunteer(request):
     if not request.user.is_superuser:
         raise PermissionDenied
     form = VolunteerForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Kegiatan volunteer berhasil ditambahkan!")
+        return redirect("main:show_volunteer")
+
     context = {
         "name": "Lavida Yuthiana Faizah",
         "form": form,
@@ -224,6 +276,19 @@ def edit_volunteer(request, volunteer_id):
     if not (request.user.is_superuser or is_editor(request.user)):
         raise PermissionDenied
     volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+    form = VolunteerForm(request.POST or None, instance=volunteer)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Kegiatan volunteer berhasil diperbarui!")
+        return redirect("main:show_volunteer")
+
+    context = {
+        "name": "Lavida Yuthiana Faizah",
+        "form": form,
+        "is_edit": True,
+    }
+    return render(request, "volunteer_form.html", context)
 
 
 def get_volunteer_json(request):
@@ -261,6 +326,12 @@ def delete_volunteer(request, volunteer_id):
     if not request.user.is_superuser:
         raise PermissionDenied
     volunteer = get_object_or_404(Volunteer, pk=volunteer_id)
+
+    if request.method == "POST":
+        volunteer.delete()
+        messages.success(request, "Kegiatan volunteer berhasil dihapus!")
+
+    return redirect("main:show_volunteer")
 
 @login_required(login_url="main:login")
 @require_POST

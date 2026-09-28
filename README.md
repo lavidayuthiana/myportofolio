@@ -39,3 +39,6 @@ Proses serialization ini wajib dilakukan karena objek Python di memori server ha
 # AI DISCLOSURE
 Saya menggunakan Google Gemini untuk bantu mengerti syntax-syntax, debugging error dan validasi pengerjaan saya.
 Link Google Gemini: https://share.gemini.google/APVJqKyUOZvw
+
+### AI DISCLOSURE Tugas 4
+Saya menggunakan Claude untuk mendapat panduan step by step Tugas 4. Bagian yang dibantu: pengecekan peran di views, menyembunyikan tombol di template, fitur star, dan pengamanan endpoint JSON. AI awalnya menyarankan membuat file permissions.py terpisah, tapi saya memilih cara yang lebih sederhana sesuai petunjuk soal (cek grup langsung di view). Saya juga sempat mengalami error import karena sisa kode lama, lalu memperbaikinya sendiri.
