@@ -24,6 +24,7 @@ from main.views import (
     toggle_star_volunteer,
     toggle_star_education,
     create_experience_ajax,
+    create_education_ajax,
 )
 
 app_name = "main"
@@ -44,6 +45,7 @@ urlpatterns = [
 
     path("education/", show_education, name="show_education"),
     path("education/add/", create_education, name="create_education"),
+    path("education/add-ajax/", create_education_ajax, name="create_education_ajax"),
     path("education/api/", get_education_json, name="get_education_json"),
     path("education/<uuid:education_id>/delete/", delete_education, name="delete_education"),
     path("education/<uuid:education_id>/edit/", edit_education, name="edit_education"),

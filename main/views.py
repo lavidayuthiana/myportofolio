@@ -231,33 +231,42 @@ def edit_education(request, education_id):
     }
     return render(request, "education_form.html", context)
 
+def serialize_education(education, user):
+    """Mengubah objek Education menjadi dict JSON, termasuk info star untuk user saat ini."""
+    starred_users = list(education.starred_by.all())
+    return {
+        "pk": str(education.id),
+        "fields": {
+            "institution_name": education.institution_name,
+            "degree": education.degree,
+            "description": education.description,
+            "logo": education.logo,
+            "score_label_display": education.get_score_label_display(),
+            "score_value": str(education.score_value),
+            "started_at": education.started_at.isoformat() if education.started_at else None,
+            "ended_at": education.ended_at.isoformat() if education.ended_at else None,
+            "is_ongoing": education.is_ongoing,
+            "star_count": len(starred_users),
+            "is_starred": user.is_authenticated and user in starred_users,
+            "starred_by_names": ", ".join(u.username for u in starred_users),
+        },
+    }
+
 
 def get_education_json(request):
     query = request.GET.get("institution_name", "").strip()
-    education = Education.objects.all()
-
+    educations = Education.objects.prefetch_related("starred_by").all()
     if query:
-        education = education.filter(institution_name__icontains=query)
-
-    education_json = serializers.serialize("json", education, fields=["institution_name", "degree", "description", "logo", "score_label", "score_value", "started_at", "ended_at"])
-    return HttpResponse(education_json, content_type="application/json")
+        educations = educations.filter(institution_name__icontains=query)
+    data = [serialize_education(edu, request.user) for edu in educations]
+    return JsonResponse(data, safe=False)
 
 
 def show_education(request):
-    json_response = get_education_json(request)
-
-    education = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    education = [item.object for item in education]
-    title_query = request.GET.get("institution_name", "").strip()
-
     context = {
         "name": "Lavida Yuthiana Faizah",
-        "education_list": education,
-        "title_query": title_query,
-        "is_editor": is_editor(request.user),
+        "title_query": request.GET.get("institution_name", "").strip(),
+        "form": EducationForm(),
     }
     return render(request, "education.html", context)
 
@@ -282,6 +291,25 @@ def toggle_star_education(request, education_id):
     else:
         education.starred_by.add(request.user)
     return redirect("main:show_education")
+
+@require_POST
+def create_education_ajax(request):
+    # Cek hak akses di server, bukan cuma menyembunyikan tombol di template
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan pendidikan."},
+            status=403,
+        )
+
+    form = EducationForm(request.POST)
+    if form.is_valid():
+        education = form.save()
+        return JsonResponse(
+            {"message": "Riwayat pendidikan berhasil ditambahkan.",
+             "data": serialize_education(education, request.user)},
+            status=201,
+        )
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 
 # ----------------------------- Volunteer -----------------------------
