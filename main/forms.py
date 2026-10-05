@@ -60,6 +60,7 @@ class EducationForm(ModelForm):
             "started_at": DateInput(attrs={"type": "date"}),
             "ended_at": DateInput(attrs={"type": "date"}),
         }
+        
     def clean_institution_name(self):
         name = strip_tags(self.cleaned_data["institution_name"]).strip()
         if not name:
