@@ -115,6 +115,21 @@ class VolunteerForm(ModelForm):
             "ended_at": DateInput(attrs={"type": "date"}),
         }
 
+    def clean_organization_name(self):
+        name = strip_tags(self.cleaned_data["organization_name"]).strip()
+        if not name:
+            raise ValidationError("Nama organisasi tidak boleh hanya berisi tag HTML.")
+        return name
+
+    def clean_degree(self):
+        degree = strip_tags(self.cleaned_data["degree"]).strip()
+        if not degree:
+            raise ValidationError("Peran/jabatan tidak boleh hanya berisi tag HTML.")
+        return degree
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
+
 class ExperienceForm(ModelForm):
     class Meta:
         model = Experience

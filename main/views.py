@@ -1,8 +1,7 @@
 import datetime
 
 from django.contrib import messages
-from django.core import serializers
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
@@ -350,33 +349,39 @@ def edit_volunteer(request, volunteer_id):
     }
     return render(request, "volunteer_form.html", context)
 
+def serialize_volunteer(volunteer, user):
+    """Mengubah objek Volunteer menjadi dict JSON, termasuk info star untuk user saat ini."""
+    starred_users = list(volunteer.starred_by.all())
+    return {
+        "pk": str(volunteer.id),
+        "fields": {
+            "organization_name": volunteer.organization_name,
+            "degree": volunteer.degree,
+            "description": volunteer.description,
+            "logo": volunteer.logo,
+            "started_at": volunteer.started_at.isoformat() if volunteer.started_at else None,
+            "ended_at": volunteer.ended_at.isoformat() if volunteer.ended_at else None,
+            "is_ongoing": volunteer.is_ongoing,
+            "star_count": len(starred_users),
+            "is_starred": user.is_authenticated and user in starred_users,
+            "starred_by_names": ", ".join(u.username for u in starred_users),
+        },
+    }
 
 def get_volunteer_json(request):
     query = request.GET.get("organization_name", "").strip()
-    volunteer = Volunteer.objects.all()
-
+    volunteers = Volunteer.objects.prefetch_related("starred_by").all()
     if query:
-        volunteer = volunteer.filter(organization_name__icontains=query)
-
-    volunteer_json = serializers.serialize("json", volunteer, fields=["organization_name", "degree", "description", "logo", "started_at", "ended_at"])
-    return HttpResponse(volunteer_json, content_type="application/json")
+        volunteers = volunteers.filter(organization_name__icontains=query)
+    data = [serialize_volunteer(vol, request.user) for vol in volunteers]
+    return JsonResponse(data, safe=False)
 
 
 def show_volunteer(request):
-    json_response = get_volunteer_json(request)
-
-    volunteer = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    volunteer = [item.object for item in volunteer]
-    title_query = request.GET.get("organization_name", "").strip()
-
     context = {
         "name": "Lavida Yuthiana Faizah",
-        "volunteer_list": volunteer,
-        "title_query": title_query,
-        "is_editor": is_editor(request.user),
+        "title_query": request.GET.get("organization_name", "").strip(),
+        "form": VolunteerForm(),
     }
     return render(request, "volunteer.html", context)
 
@@ -402,3 +407,22 @@ def toggle_star_volunteer(request, volunteer_id):
     else:
         volunteer.starred_by.add(request.user)
     return redirect("main:show_volunteer")
+
+@require_POST
+def create_volunteer_ajax(request):
+    # Cek hak akses di server, bukan cuma menyembunyikan tombol di template
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan kegiatan volunteer."},
+            status=403,
+        )
+
+    form = VolunteerForm(request.POST)
+    if form.is_valid():
+        volunteer = form.save()
+        return JsonResponse(
+            {"message": "Kegiatan volunteer berhasil ditambahkan.",
+             "data": serialize_volunteer(volunteer, request.user)},
+            status=201,
+        )
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
