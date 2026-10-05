@@ -10,16 +10,15 @@
                 <div class="section-header">
                     <h1>Volunteer</h1>
                     {% if user.is_superuser %}
-                    <a href="{% url 'main:create_volunteer' %}" class="button section-add-button">
-                        <span aria-hidden="true">+</span>
-                        Tambah Volunteer
-                    </a>
+                        <button type="button" class="button section-add-button" popovertarget="add-volunteer-modal">
+                            <span aria-hidden="true">+</span> Tambah Volunteer
+                        </button>
                     {% endif %}
                 </div>
-                <form method="get"
-                      action="{% url 'main:show_volunteer' %}"
-                      class="section-search">
+
+                <form id="volunteer-search-form" class="section-search">
                     <input type="search"
+                           id="search-input"
                            name="organization_name"
                            value="{{ title_query }}"
                            placeholder="Cari berdasarkan nama organisasi"
@@ -28,39 +27,173 @@
                     <button type="submit" class="button">Cari</button>
                 </form>
 
-                <div class="volunteer-grid">
-                    {% for volunteer in volunteer_list %}
-                        <article class="volunteer-card">
-                            <span class="volunteer-category">
-                                {{ volunteer.degree }}
-                            </span>
-                            {% if volunteer.logo %}
-                                <img src="{{ volunteer.logo }}" alt="Logo {{ volunteer.organization_name }}" class="volunteer-logo">
-                            {% endif %}
-                            <h2>{{ volunteer.organization_name }}</h2>
-                            <p class="volunteer-description">
-                                {{ volunteer.description|linebreaksbr }}
-                            </p>
-
-                            {% if volunteer.is_ongoing %}
-                                <p class="volunteer-status">On-Going</p>
-                            {% else %}
-                                <p class="volunteer-status">Completed</p>
-                            {% endif %}
-                            {% include "components/volunteer_star.html" with volunteer=volunteer %}
-                            {% include "components/volunteer_delete_modal.html" with volunteer=volunteer %}
-                        </article>
-                    {% empty %}
-                        {% if title_query %}
-                            <p class="empty-state">Tidak ada organisasi dengan nama tersebut.</p>
-                        {% else %}
-                            <p class="empty-state">
-                                Belum ada kegiatan volunteer yang ditambahkan.
-                            </p>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+                <div id="loading" class="empty-state hide"><p>Memuat kegiatan volunteer...</p></div>
+                <div id="error" class="empty-state hide"><p>Gagal memuat data volunteer. Silakan coba lagi.</p></div>
+                <div id="empty" class="empty-state hide"><p>Belum ada kegiatan volunteer yang ditambahkan atau ditemukan.</p></div>
+                <div id="grid" class="volunteer-grid hide"></div>
             </div>
         </section>
     </main>
+
+    {% if user.is_superuser %}
+        {% include "components/volunteer_form_modal.html" %}
+    {% endif %}
+
+    <script>
+    // ---------- Konfigurasi ----------
+    const VOLUNTEER_ENDPOINT = "{% url 'main:get_volunteer_json' %}";
+    const CREATE_VOLUNTEER_ENDPOINT = "{% url 'main:create_volunteer_ajax' %}";
+    const LOGIN_URL = "{% url 'main:login' %}";
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+    const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const CAN_EDIT = "{{ can_edit|yesno:'true,false' }}" === "true";
+    const DUMMY_UUID = "00000000-0000-0000-0000-000000000000";
+    const SEARCH_DEBOUNCE_DELAY = 300;
+    let searchDebounceTimer;
+    let volunteerAbortController;
+
+    // ---------- Elemen DOM ----------
+    const loadingState = document.getElementById('loading');
+    const errorState = document.getElementById('error');
+    const emptyState = document.getElementById('empty');
+    const gridContainer = document.getElementById('grid');
+    const searchForm = document.getElementById('volunteer-search-form');
+    const searchInput = document.getElementById('search-input');
+    const volunteerForm = document.getElementById('volunteer-form'); // null untuk non-superuser
+
+    function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+        loadingState.classList.toggle('hide', !showLoading);
+        errorState.classList.toggle('hide', !showError);
+        emptyState.classList.toggle('hide', !showEmpty);
+        gridContainer.classList.toggle('hide', !showGrid);
+    }
+
+    function buildVolunteerCard(item) {
+        const vol = item.fields;
+        const id = item.pk;
+        const card = document.createElement('article');
+        card.className = 'volunteer-card';
+
+        const editUrl = "{% url 'main:edit_volunteer' '00000000-0000-0000-0000-000000000000' %}".replace(DUMMY_UUID, id);
+        const deleteUrl = "{% url 'main:delete_volunteer' '00000000-0000-0000-0000-000000000000' %}".replace(DUMMY_UUID, id);
+        const starUrl = "{% url 'main:toggle_star_volunteer' '00000000-0000-0000-0000-000000000000' %}".replace(DUMMY_UUID, id);
+
+        const logoHtml = vol.logo
+            ? `<img src="${escapeHtml(vol.logo)}" alt="Logo ${escapeHtml(vol.organization_name)}" class="volunteer-logo">`
+            : '';
+
+        const starHtml = IS_AUTHENTICATED
+            ? `<form method="post" action="${starUrl}" class="star-form">
+                   {% csrf_token %}
+                   <button type="submit" class="button button-star${vol.is_starred ? ' is-starred' : ''}"
+                           title="${vol.star_count ? 'Dibintangi oleh ' + escapeHtml(vol.starred_by_names) : 'Jadilah yang pertama memberi star'}">
+                       ★ ${vol.is_starred ? 'Unstar' : 'Star'} <span class="star-count">${vol.star_count}</span>
+                   </button>
+                   <span>${vol.is_starred ? 'Kamu sudah memberi star' : 'Kamu belum memberi star'}</span>
+               </form>`
+            : `<a href="${LOGIN_URL}" class="button button-star">★ Login untuk Star <span class="star-count">${vol.star_count}</span></a>`;
+
+        const editHtml = CAN_EDIT ? `<a href="${editUrl}" class="button button-secondary">Edit</a>` : '';
+        const deleteHtml = IS_SUPERUSER
+            ? `<form method="post" action="${deleteUrl}" style="display:inline;">
+                   {% csrf_token %}
+                   <button type="submit" class="button button-danger"
+                           onclick="return confirm('Yakin ingin menghapus kegiatan volunteer ini?');">Hapus</button>
+               </form>`
+            : '';
+        const actionsHtml = (editHtml || deleteHtml) ? `<p class="item-actions">${editHtml} ${deleteHtml}</p>` : '';
+
+        // SEMUA data dari server di-escape sebelum disisipkan ke innerHTML
+        card.innerHTML = `
+            <span class="volunteer-category">${escapeHtml(vol.degree)}</span>
+            ${logoHtml}
+            <h2>${escapeHtml(vol.organization_name)}</h2>
+            <p class="volunteer-description">${escapeHtml(vol.description)}</p>
+            <p class="volunteer-status">${vol.is_ongoing ? 'On-Going' : 'Completed'}</p>
+            ${starHtml}
+            ${actionsHtml}
+        `;
+        return card;
+    }
+
+    async function fetchVolunteers(query = '') {
+        // Batalkan request sebelumnya supaya hasil lama tidak menimpa hasil baru
+        if (volunteerAbortController) volunteerAbortController.abort();
+        volunteerAbortController = new AbortController();
+
+        try {
+            displayPageSection({ showLoading: true });
+            const url = query ? `${VOLUNTEER_ENDPOINT}?organization_name=${encodeURIComponent(query)}` : VOLUNTEER_ENDPOINT;
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: volunteerAbortController.signal,
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const data = await response.json();
+            if (data.length === 0) {
+                displayPageSection({ showEmpty: true });
+                return;
+            }
+            gridContainer.innerHTML = '';
+            data.forEach(item => gridContainer.appendChild(buildVolunteerCard(item)));
+            displayPageSection({ showGrid: true });
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error('Error loading volunteers:', error);
+            displayPageSection({ showError: true });
+        }
+    }
+
+    // ---------- Pencarian + debouncing ----------
+    searchInput.addEventListener('input', () => {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => fetchVolunteers(searchInput.value.trim()), SEARCH_DEBOUNCE_DELAY);
+    });
+    searchForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        fetchVolunteers(searchInput.value.trim());
+    });
+
+    // ---------- Tambah data lewat modal ----------
+    async function addVolunteer(event) {
+        event.preventDefault();
+        const submitButton = volunteerForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch(CREATE_VOLUNTEER_ENDPOINT, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: new FormData(volunteerForm),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (response.status === 201) {
+                volunteerForm.reset();
+                document.getElementById('add-volunteer-modal').hidePopover();
+                showToast('Berhasil', 'Kegiatan volunteer berhasil ditambahkan!', 'success');
+                fetchVolunteers(searchInput.value.trim());   // perbarui daftar tanpa reload
+            } else {
+                const messages = result.errors
+                    ? Object.values(result.errors).flat().map(e => e.message)
+                    : [result.message || `Terjadi kesalahan (status ${response.status}).`];
+                showToast('Gagal menambahkan volunteer', messages.join(' '), 'error');
+            }
+        } catch (error) {
+            console.error('Error adding volunteer:', error);
+            showToast('Gagal menambahkan volunteer', 'Tidak dapat terhubung ke server.', 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    // Form hanya ada untuk superuser; cek dulu agar skrip tidak error di peran lain
+    if (volunteerForm) {
+        volunteerForm.addEventListener('submit', addVolunteer);
+    }
+
+    fetchVolunteers(searchInput.value.trim());
+    </script>
 {% endblock content %}
