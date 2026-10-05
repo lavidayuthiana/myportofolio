@@ -60,6 +60,20 @@ class EducationForm(ModelForm):
             "started_at": DateInput(attrs={"type": "date"}),
             "ended_at": DateInput(attrs={"type": "date"}),
         }
+    def clean_institution_name(self):
+        name = strip_tags(self.cleaned_data["institution_name"]).strip()
+        if not name:
+            raise ValidationError("Nama institusi tidak boleh hanya berisi tag HTML.")
+        return name
+
+    def clean_degree(self):
+        degree = strip_tags(self.cleaned_data["degree"]).strip()
+        if not degree:
+            raise ValidationError("Jenjang tidak boleh hanya berisi tag HTML.")
+        return degree
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
 
 
 class VolunteerForm(ModelForm):
