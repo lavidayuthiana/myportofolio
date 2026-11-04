@@ -36,26 +36,28 @@ class MainTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Part-Time")
-        self.assertContains(response, "On-Going")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
+        # Sejak Tugas 5 data dimuat lewat AJAX, jadi isi kartu dicek dari API
+        data = self.client.get(reverse("api:experience-list")).json()
+        self.assertEqual(data[0]["title"], self.experience.title)
+        self.assertEqual(data[0]["description"], self.experience.description)
+        self.assertEqual(data[0]["category_display"], "Part-Time")
+        self.assertTrue(data[0]["is_ongoing"])
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
 
-        self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
+        self.assertContains(response, "Belum ada pengalaman yang ditambahkan")
+        self.assertEqual(self.client.get(reverse("api:experience-list")).json(), [])
 
     def test_completed_experience(self):
         self.experience.ended_at = timezone.now()
         self.experience.save()
-        response = self.client.get(reverse("main:show_experience"))
+        data = self.client.get(reverse("api:experience-list")).json()
 
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Completed")
-        self.assertNotContains(response, "On-Going")
+        self.assertFalse(data[0]["is_ongoing"])
 
 class EducationTest(TestCase):
     def setUp(self):
@@ -73,16 +75,17 @@ class EducationTest(TestCase):
         self.assertTemplateUsed(response, "education.html")
 
     def test_education_data_appears_on_page(self):
-        response = self.client.get(reverse("main:show_education"))
+        data = self.client.get(reverse("main:get_education_json")).json()
 
-        self.assertContains(response, self.education.institution_name)
-        self.assertContains(response, self.education.degree)
+        self.assertEqual(data[0]["fields"]["institution_name"], self.education.institution_name)
+        self.assertEqual(data[0]["fields"]["degree"], self.education.degree)
 
     def test_empty_education_page(self):
         Education.objects.all().delete()
         response = self.client.get(reverse("main:show_education"))
 
-        self.assertContains(response, "Belum ada education yang ditambahkan.")
+        self.assertContains(response, "Belum ada pendidikan yang ditambahkan")
+        self.assertEqual(self.client.get(reverse("main:get_education_json")).json(), [])
 
 class VolunteerTest(TestCase):
     def setUp(self):
@@ -99,13 +102,14 @@ class VolunteerTest(TestCase):
         self.assertTemplateUsed(response, "volunteer.html")
 
     def test_volunteer_data_appears_on_page(self):
-        response = self.client.get(reverse("main:show_volunteer"))
+        data = self.client.get(reverse("main:get_volunteer_json")).json()
 
-        self.assertContains(response, self.volunteer.organization_name)
-        self.assertContains(response, self.volunteer.degree)
+        self.assertEqual(data[0]["fields"]["organization_name"], self.volunteer.organization_name)
+        self.assertEqual(data[0]["fields"]["degree"], self.volunteer.degree)
 
     def test_empty_volunteer_page(self):
         Volunteer.objects.all().delete()
         response = self.client.get(reverse("main:show_volunteer"))
 
-        self.assertContains(response, "Belum ada kegiatan volunteer yang ditambahkan.")
+        self.assertContains(response, "Belum ada kegiatan volunteer yang ditambahkan")
+        self.assertEqual(self.client.get(reverse("main:get_volunteer_json")).json(), [])
