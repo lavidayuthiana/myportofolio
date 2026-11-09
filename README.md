@@ -52,3 +52,17 @@ Saya menggunakan Claude untuk mendapat panduan step by step Tugas 4. Bagian yang
 
 # AI Disclosure Tugas 5
 Saya menggunakan Claude sebagai pemandu step by step dengan memberikan instruksi soal. Ai tidak mengubah kode saya secara langsung, saya mengerjakan setiap langkah sendiri lalu mengirim hasilnya untuk dicek sebelum commit. Bagian yang dibantu meliputi endpoint JSON manual dengan info star, view POST AJAX, modal form, pencarian dengan debouncing, toast, refactor 'escapeHtml' dan 'getCookie' ke 'utils.js' dan 'strip_tags' di form. Pola Education kemudian saya terapkan sendiri ke Volunteer. Lewat review, ditemukan beberapa kesalahan saya yang kemudian saya perbaiki: class dan 'id' modal yang salah sehingga JavaScript tidak menemukan form, 'volunteer.html' yang lupa di-commit, dan template yang dihapus tanpa 'git rm'. Keterbatasan AI yang saya catat: AI tidak bisa menguji tampilan di browser saya, sehingga pengujian UI saya lakukan sendiri; AI juga hanya melihat kode yang saya kirim; dan 'strip_tags' hanya membuang tag, bukan isinya, sehingga '<b>halo</b><script>a()</script> tersimpan sebagai 'haloa()'.
+
+### Tugas 6
+1. REST adalah gaya arsitektur untuk membuat API agar komunikasi client dan server lebih terstruktur. JSON saja belum cukup disebut RESTful karena JSON hanya format data. API juga harus mengikuti aturan REST, seperti penggunaan HTTP method dan URL sesuai fungsinya.
+- PUT: Mengubah seluruh data. Contohnya, memperbarui semua informasi profil.
+- PATCH: Mengubah sebagian data. Contohnya, hanya mengganti nama pengguna.
+
+2. Serializer berfungsi mengubah data model Django menjadi JSON dan sebaliknya. Serializer juga membantu memvalidasi data sebelum disimpan. Dibandingkan JsonResponse yang harus membuat dictionary secara manual, serializer lebih praktis, rapi, dan mengurangi penulisan kode berulang.
+
+3. Autentikasi adalah proses memastikan identitas pengguna, misalnya melalui login. Otorisasi adalah menentukan hak akses pengguna, misalnya apakah pengguna boleh mengubah atau menghapus data. Permission class harus digunakan di server karena menyembunyikan tombol di template tidak menjamin keamanan. Pengguna masih bisa mengirim request secara langsung. Dengan permission class, server tetap memeriksa hak akses setiap request.
+
+4. Token CSRF diperlukan karena SessionAuthentication menggunakan cookie session yang dikirim otomatis oleh browser. Hal ini bisa dimanfaatkan pihak lain untuk mengirim request tanpa sepengetahuan pengguna. Token CSRF memastikan request yang mengubah data benar-benar berasal dari sumber yang sah. Sementara itu, force_authenticate tidak cukup untuk menguji CSRF karena melewati proses autentikasi normal. Untuk mengujinya, gunakan test client dengan enforce_csrf_checks=True agar perlindungan CSRF benar-benar diperiksa.
+
+# AI Disclosure Tugas 6
+Saya menggunakan Claude sebagai pemandu step by step. Bagian yang dibantu meliputi `EducationSerializer`, permission Editor, API view dan URL, modal tambah/edit dengan POST/PATCH di `education.html`, serta test untuk keempat peran dan CSRF. Kesalahan saya yang kemudian saya perbaiki: `message` permission tertempel di kelas yang salah, dan assertion test yang tertukar. Saya juga menemukan bahwa 7 test lama sudah gagal sejak Tugas 5, lalu menyesuaikan assertion-nya. Keterbatasan AI yang saya catat: AI sempat memberi `requirements.txt` dengan dua dependency tergabung dalam satu baris, test validasi awalnya gagal karena `strip_tags` meloloskan `<script>alert(1)</script>` menjadi `alert(1)`.
