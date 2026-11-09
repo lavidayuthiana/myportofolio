@@ -177,14 +177,91 @@ class EducationEditorAPITest(APITestCase):
         self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
         self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
         self.assertEqual(Education.objects.count(), 1)
+        self.assertTrue(Education.objects.filter(pk=self.education.id).exists())
 
-    def test_visitor_cannot_write_but_can_star(self):
+    def test_guest_and_visitor_cannot_write(self):
+        for user in (None, self.visitor):
+            self.client.force_authenticate(user=user)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
+            self.assertEqual(self.client.patch(self.detail_url, {"degree": "X"}, format="json").status_code, 403)
+            self.assertEqual(self.client.put(self.detail_url, self.payload, format="json").status_code, 403)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+        # Penolakan dicek dari isi database, bukan hanya status
+        self.assertEqual(Education.objects.count(), 1)
+        self.education.refresh_from_db()
+        self.assertEqual(self.education.institution_name, "Fakultas Ilmu Komputer UI")
+        self.assertEqual(self.education.degree, "S1 Sistem Informasi")
+
+    def test_visitor_can_star_and_toggle(self):
         self.client.force_authenticate(user=self.visitor)
-        self.assertEqual(self.client.patch(self.detail_url, {"degree": "X"}, format="json").status_code, 403)
         star_url = reverse("api:education-star", args=[self.education.id])
         response = self.client.post(star_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["is_starred"])
+        self.assertEqual(response.data["star_count"], 1)
+        self.assertTrue(self.education.starred_by.filter(pk=self.visitor.pk).exists())
+        response = self.client.post(star_url)
+        self.assertFalse(response.data["is_starred"])
+        self.assertEqual(response.data["star_count"], 0)
+
+    def test_guest_cannot_star(self):
+        star_url = reverse("api:education-star", args=[self.education.id])
+        self.assertEqual(self.client.post(star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.education.starred_by.count(), 0)
+
+    def test_star_only_accepts_post(self):
+        self.client.force_authenticate(user=self.visitor)
+        star_url = reverse("api:education-star", args=[self.education.id])
+        self.assertEqual(self.client.get(star_url).status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_search_and_missing(self):
+        response = self.client.get(self.list_url, {"institution_name": "ilmu komputer"})
+        self.assertEqual(len(response.data), 1)
+        response = self.client.get(self.list_url, {"institution_name": "tidak-ada"})
+        self.assertEqual(response.data, [])
+        missing = reverse("api:education-detail", args=[uuid.uuid4()])
+        self.assertEqual(self.client.get(missing).status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_validation(self):
+        self.client.force_authenticate(user=self.owner)
+        for changes, field in [
+            ({"institution_name": "   "}, "institution_name"),
+            ({"institution_name": "<img src=x onerror=alert(1)>"}, "institution_name"),
+            ({"degree": "<b></b>"}, "degree"),
+            ({"logo": "javascript:alert(1)"}, "logo"),
+            ({"score_label": "gpa"}, "score_label"),
+            ({"score_value": "abc"}, "score_value"),
+        ]:
+            response = self.client.post(self.list_url, {**self.payload, **changes}, format="json")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn(field, response.data)
+        self.assertEqual(Education.objects.count(), 1)
+
+    def test_text_is_stripped_of_tags(self):
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.post(self.list_url, {
+            **self.payload, "institution_name": "<b>SMA</b> Negeri 1", "description": "<i>OSIS</i>",
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["institution_name"], "SMA Negeri 1")
+        self.assertEqual(response.data["description"], "OSIS")
+
+    def test_computed_fields_are_read_only(self):
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.post(self.list_url, {
+            **self.payload, "star_count": 99, "is_starred": True, "starred_by": [self.visitor.id],
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["star_count"], 0)
+        self.assertNotIn("starred_by", response.data)
+
+    def test_session_write_without_csrf_is_rejected(self):
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(username="editor", password="test-password"))
+        response = client.patch(self.detail_url, {"degree": "Tanpa CSRF"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.education.refresh_from_db()
+        self.assertEqual(self.education.degree, "S1 Sistem Informasi")
 
     def test_owner_can_create_and_delete(self):
         self.client.force_authenticate(user=self.owner)
