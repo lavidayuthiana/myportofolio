@@ -45,11 +45,12 @@ class ExperienceAPITest(APITestCase):
         self.assertEqual(self.client.get(url).status_code, status.HTTP_404_NOT_FOUND)
 
     def test_guest_and_visitor_cannot_write(self):
-        for user in (None, self.visitor):
+        # Tamu: 401 (belum login, ada TokenAuthentication); visitor: 403 (tidak berhak)
+        for user, expected in ((None, 401), (self.visitor, 403)):
             self.client.force_authenticate(user=user)
-            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
-            self.assertEqual(self.client.patch(self.detail_url, {"title": "Changed"}, format="json").status_code, 403)
-            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, expected)
+            self.assertEqual(self.client.patch(self.detail_url, {"title": "Changed"}, format="json").status_code, expected)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, expected)
         self.assertEqual(Experience.objects.count(), 1)
         self.experience.refresh_from_db()
         self.assertEqual(self.experience.title, "Asisten Dosen PBP")
@@ -89,7 +90,7 @@ class ExperienceAPITest(APITestCase):
         self.assertFalse(Experience.objects.filter(pk=self.experience.id).exists())
 
     def test_star_requires_login_and_toggles(self):
-        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_401_UNAUTHORIZED)
         self.client.force_authenticate(user=self.visitor)
         response = self.client.post(self.star_url)
         self.assertTrue(response.data["is_starred"])
@@ -180,12 +181,13 @@ class EducationEditorAPITest(APITestCase):
         self.assertTrue(Education.objects.filter(pk=self.education.id).exists())
 
     def test_guest_and_visitor_cannot_write(self):
-        for user in (None, self.visitor):
+        # Tamu: 401 (belum login, ada TokenAuthentication); visitor: 403 (tidak berhak)
+        for user, expected in ((None, 401), (self.visitor, 403)):
             self.client.force_authenticate(user=user)
-            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
-            self.assertEqual(self.client.patch(self.detail_url, {"degree": "X"}, format="json").status_code, 403)
-            self.assertEqual(self.client.put(self.detail_url, self.payload, format="json").status_code, 403)
-            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, expected)
+            self.assertEqual(self.client.patch(self.detail_url, {"degree": "X"}, format="json").status_code, expected)
+            self.assertEqual(self.client.put(self.detail_url, self.payload, format="json").status_code, expected)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, expected)
         # Penolakan dicek dari isi database, bukan hanya status
         self.assertEqual(Education.objects.count(), 1)
         self.education.refresh_from_db()
@@ -206,7 +208,7 @@ class EducationEditorAPITest(APITestCase):
 
     def test_guest_cannot_star(self):
         star_url = reverse("api:education-star", args=[self.education.id])
-        self.assertEqual(self.client.post(star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.post(star_url).status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(self.education.starred_by.count(), 0)
 
     def test_star_only_accepts_post(self):
@@ -268,3 +270,65 @@ class EducationEditorAPITest(APITestCase):
         response = self.client.post(self.list_url, self.payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(self.client.delete(self.detail_url).status_code, status.HTTP_204_NO_CONTENT)
+
+class TokenAuthAPITest(APITestCase):
+    """Tutorial 10: login token, POST dengan header Authorization, dan logout."""
+
+    def setUp(self):
+        self.owner = User.objects.create_superuser(
+            username="owner", password="test-password", email="owner@example.com",
+        )
+        self.token_url = reverse("api:api_token_auth")
+        self.logout_url = reverse("api:api_logout")
+        self.list_url = reverse("api:experience-list")
+        self.payload = {
+            "title": "Proyek dari Flutter", "description": "Dibuat lewat token",
+            "category": "freelance", "thumbnail": "", "started_at": None, "ended_at": None,
+        }
+
+    def _login(self):
+        response = self.client.post(
+            self.token_url, {"username": "owner", "password": "test-password"}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return response.data["token"]
+
+    def test_obtain_token(self):
+        token = self._login()
+        self.assertTrue(token)
+        self.assertEqual(self._login(), token)  # token yang sama dipakai ulang
+
+    def test_wrong_credentials_rejected(self):
+        response = self.client.post(
+            self.token_url, {"username": "owner", "password": "salah"}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_with_token_without_csrf(self):
+        token = self._login()
+        client = APIClient(enforce_csrf_checks=True)
+        client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
+        response = client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_without_token_rejected(self):
+        response = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_logout_revokes_token(self):
+        token = self._login()
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
+        response = self.client.post(self.logout_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Token lama tidak berlaku lagi.
+        response = self.client.post(self.logout_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_logout_requires_auth(self):
+        response = self.client.post(self.logout_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_cors_header_present(self):
+        response = self.client.get(self.list_url, HTTP_ORIGIN="http://localhost:5555")
+        self.assertEqual(response["Access-Control-Allow-Origin"], "*")

@@ -28,7 +28,8 @@ SECRET_KEY = 'django-insecure-6cwu+f4xd#%^tmm-lk&a7r803b5f_47gf^^!7svcvkf@priu8@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "lavida-yuthiana-myportofolio.pws.cs.ui.ac.id"]
+# 10.0.2.2 = alamat host PC dari dalam emulator Android (dipakai aplikasi Flutter)
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.0.2.2", "lavida-yuthiana-myportofolio.pws.cs.ui.ac.id"]
 CSRF_TRUSTED_ORIGINS = [
     "https://lavida-yuthiana-myportofolio.pws.cs.ui.ac.id",
 ]
@@ -46,10 +47,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main',
     'contacts',
+    'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -152,3 +156,17 @@ WHITENOISE_USE_FINDERS = True
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Django REST Framework (Tutorial 10)
+# Token untuk klien mobile, Session untuk halaman web & Browsable API.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
+
+# CORS untuk Flutter Web (Chrome) saat development.
+# Di deployment, set CORS_ALLOW_ALL_ORIGINS=False di environment.
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'True').lower() == 'true'
